@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ESP32 Toolkit</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card: #21262d;
+      --card-hover: #30363d;
+      --accent: #58a6ff;
+      --text: #fff;
+      --stop: #ff4d4f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin:0; padding:1rem;
+      font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+      background:var(--bg); color:var(--text);
+    }
+    h1 {
+      text-align:center; font-size:2rem; margin-bottom:1rem;
+    }
+    .command {
+      background:var(--card);
+      border:2px solid var(--card-hover);
+      border-radius:0.75rem;
+      padding:1rem;
+      margin-bottom:1rem;
+    }
+    .command:hover {
+      border-color:var(--accent);
+    }
+    .btn {
+      display:block; width:100%;
+      padding:0.75rem;
+      font-size:1.25rem;
+      font-weight:600;
+      text-align:center;
+      background:var(--card);
+      border:none;
+      border-radius:0.5rem;
+      color:var(--text);
+      cursor:pointer;
+      transition:transform 0.1s, background 0.2s;
+      margin-bottom:0.5rem;
+    }
+    .btn:active { transform:scale(0.97); }
+    .btn:hover { background:var(--card-hover); }
+    .stop { background:var(--stop); }
+    .params {
+      display:flex; flex-direction:column; gap:0.5rem; margin-top:0.5rem;
+    }
+    .params label {
+      font-size:1rem; display:flex; justify-content:space-between;
+    }
+    .params input {
+      width:40%; padding:0.25rem; border-radius:0.25rem;
+      border:1px solid #444; background:#111; color:#eee;
+    }
+    .status {
+      text-align:center; padding:0.5rem; font-size:1rem;
+      color:var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <h1>ESP32 Toolkit</h1>
+
+  <!-- FLOOD -->
+  <div class="command">
+    <button class="btn" onclick="send('flood')">🌐 Avvia Flood</button>
+    <div class="params">
+      <label>Count <input id="flood_count" type="number" value="20"></label>
+      <label>Interval ms <input id="flood_interval" type="number" value="100"></label>
+    </div>
+  </div>
+
+  <!-- TCP SNIFF -->
+  <div class="command">
+    <button class="btn" onclick="send('tcp')">📡 Analisi TCP</button>
+    <div class="params">
+      <label>Durata s <input id="tcp_duration" type="number" value="30"></label>
+    </div>
+  </div>
+
+  <!-- FAKE AP -->
+  <div class="command">
+    <button class="btn" onclick="send('ap')">🌀 Fake AP</button>
+    <div class="params">
+      <label>SSID <input id="ap_ssid_param" type="text" value="ESP32_FAKE"></label>
+      <label>Canale <input id="ap_channel" type="number" value="6" min="1" max="11"></label>
+    </div>
+  </div>
+
+  <!-- HID -->
+  <div class="command">
+    <button class="btn" onclick="send('hid')">⌨️ HID Injection</button>
+    <div class="params">
+      <label>Testo <input id="hid_sequence" type="text" value="HelloWorld"></label>
+    </div>
+  </div>
+
+  <!-- STOP -->
+  <div class="command">
+    <button class="btn stop" onclick="send('stop')">⛔ STOP</button>
+  </div>
+
+  <div class="status" id="status">In attesa di comando...</div>
+
+  <script>
+    function send(cmd) {
+      let url = '/cmd?run=' + cmd;
+      if (cmd === 'flood') {
+        url += '&count=' + document.getElementById('flood_count').value
+            + '&interval=' + document.getElementById('flood_interval').value;
+      }
+      else if (cmd === 'tcp') {
+        url += '&duration=' + document.getElementById('tcp_duration').value;
+      }
+      else if (cmd === 'ap') {
+        url += '&ssid=' + encodeURIComponent(document.getElementById('ap_ssid_param').value)
+            + '&channel=' + document.getElementById('ap_channel').value;
+      }
+      else if (cmd === 'hid') {
+        url += '&seq=' + encodeURIComponent(document.getElementById('hid_sequence').value);
+      }
+      document.getElementById('status').innerText = 'Invio: ' + cmd + '…';
+      fetch(url)
+        .then(r => r.text())
+        .then(t => document.getElementById('status').innerText = t)
+        .catch(e => document.getElementById('status').innerText = 'Errore: ' + e);
+    }
+  </script>
+</body>
+</html>
